@@ -102,12 +102,68 @@ describe("RotatableSet", () => {
         expect(ring.getFurthestItem()).toBe(2);
     });
 
+    it("getFurthestItem supports indexed access and wraps", () => {
+        const ring = new RotatableSet([1, 2, 3, 4]);
+        expect(ring.getFurthestItem()).toBe(4);
+        expect(ring.getFurthestItem(1)).toBe(3);
+        expect(ring.getFurthestItem(2)).toBe(2);
+        expect(ring.getFurthestItem(3)).toBe(1);
+        expect(ring.getFurthestItem(4)).toBe(4); // exact wrap to same as 0
+        expect(ring.getFurthestItem(5)).toBe(3); // wraps past size
+        expect(ring.getFurthestItem(9)).toBe(3); // multiple full wraps
+        ring.next(); // 1, cursor at 2
+        expect(ring.getFurthestItem(1)).toBe(4);
+    });
+
+    it("supports adding and deleting class instances", () => {
+        class Foo {
+            constructor(public id: number) {}
+        }
+        const a = new Foo(1);
+        const b = new Foo(2);
+        const c = new Foo(3);
+
+        const ring = new RotatableSet<Foo>([a, b]);
+        ring.add(c);
+        expect(ring.size).toBe(3);
+        expect(ring.peek()).toBe(a);
+        expect(ring.delete(b)).toBe(true);
+        expect(ring.size).toBe(2);
+        expect(ring.delete(b)).toBe(false);
+        expect(ring.toArray()).toEqual([a, c]);
+    });
+
+    it("allows deleting via a grabbed class reference", () => {
+        class Widget {
+            constructor(public name: string) {}
+        }
+        const w1 = new Widget("w1");
+        const w2 = new Widget("w2");
+        const w3 = new Widget("w3");
+
+        const ring = new RotatableSet<Widget>([w1, w2, w3]);
+        const grabbed = ring.getFurthestItem(); // w3
+        expect(grabbed).toBe(w3);
+        expect(ring.delete(grabbed)).toBe(true);
+        expect(ring.size).toBe(2);
+        expect(ring.has(w3)).toBe(false);
+        expect(ring.toArray()).toEqual([w1, w2]);
+        expect(ring.getFurthestItem()).toBe(w2);
+    });
+
     it("getFurthestItem works for two items", () => {
         const ring = new RotatableSet(["A", "B"]);
         expect(ring.peek()).toBe("A");
         expect(ring.getFurthestItem()).toBe("B");
         ring.next(); // A, cursor at B
         expect(ring.getFurthestItem()).toBe("A");
+    });
+
+    it("getFurthestItem indexes wrap for singleton rings", () => {
+        const ring = new RotatableSet(["only"]);
+        expect(ring.getFurthestItem(0)).toBe("only");
+        expect(ring.getFurthestItem(1)).toBe("only");
+        expect(ring.getFurthestItem(99)).toBe("only");
     });
 
     it("behaves correctly for singleton rings", () => {

@@ -30,8 +30,9 @@ console.log(rot.move(1));     // C
 const set = new RotatableSet([1, 2, 3]);
 set.add(4);                   // Set-style add (unique, returns this)
 set.add(4);                   // no-op for duplicates
-console.log(set.next());      // 1
 console.log(set.getFurthestItem()); // 4
+console.log(set.getFurthestItem(1)); // 3
+console.log(set.next());      // 1
 ```
 
 ### Iteration
@@ -72,7 +73,8 @@ for (const x of set.cycle())  // one full pass then stops
 
 Unique, ordered, circular set. All operations below are O(1) unless noted.
 The cursor always points at the item that `next()` will return.  
-`getFurthestItem()` is the item farthest ahead in `next()` order (i.e. `previous`).
+`getFurthestItem(index=0)` is the item farthest ahead in `next()` order (i.e.
+`previous`), offset further backward by `index` (wraps).
 
 | method                | summary                                                     |
 | --------------------- | ----------------------------------------------------------- |
@@ -80,7 +82,7 @@ The cursor always points at the item that `next()` will return.
 | `delete(item)`        | Set‑style delete, returns `boolean`                         |
 | `next()`              | return current, advance (wraps)                             |
 | `peek()`              | read current without advancing                              |
-| `getFurthestItem()`   | item farthest from cursor in `next()` steps                 |
+| `getFurthestItem(index=0)` | item farthest from cursor; `index` steps farther back (wraps, O(1) when `index` is 0, otherwise O(index mod size)) |
 | `has(item)`           | membership check                                            |
 | `isEmpty`             | whether the set has zero items                              |
 | `clear()`             | remove all items                                            |

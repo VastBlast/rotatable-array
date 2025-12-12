@@ -14,8 +14,8 @@ class RingNode<T> {
  * A mutable, circular rotator with O(1) next/add/remove/furthest.
  *
  * The "current" cursor always points at the item that `next()` will return.
- * `getFurthestItem()` returns the item farthest ahead in the `next()` direction
- * (i.e. the previous item relative to the cursor).
+ * `getFurthestItem(index)` returns the item farthest ahead in the `next()`
+ * direction (i.e. the previous item relative to the cursor), offset by `index`.
  */
 export class RotatableSet<T> implements Iterable<T> {
     private current: RingNode<T> | null = null;
@@ -109,12 +109,19 @@ export class RotatableSet<T> implements Iterable<T> {
 
     /**
      * Get the furthest item from the current cursor in terms of `next()` steps.
-     * For non-empty sets this is always the previous item.
+     * Provide `index` to walk further backward from that furthest item (wraps).
+     * Runtime: O(1) when `index === 0`, otherwise O(index mod size).
      * @throws Error if the set is empty.
      */
-    getFurthestItem(): T {
+    getFurthestItem(index = 0): T {
         const node = this.requireCurrent();
-        return node.prev.value;
+        const offset = ((index % this._size) + this._size) % this._size;
+
+        let target = node.prev;
+        for (let i = 0; i < offset; i += 1) {
+            target = target.prev;
+        }
+        return target.value;
     }
 
     /** O(1) membership check. */

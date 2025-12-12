@@ -5,21 +5,19 @@ describe("RotatableSet", () => {
     it("starts empty and throws on next/furthest/peek", () => {
         const ring = new RotatableSet<number>();
         expect(ring.size).toBe(0);
-        expect(ring.length).toBe(0);
         expect(ring.isEmpty).toBe(true);
         expect(() => ring.next()).toThrowError(/empty/i);
         expect(() => ring.getFurthestItem()).toThrowError(/empty/i);
         expect(() => ring.peek()).toThrowError(/empty/i);
-        expect(ring.removeItem(1)).toBe(false);
+        expect(ring.delete(1)).toBe(false);
         expect([...ring.cycle()]).toEqual([]);
         expect(Array.from(ring.toSet())).toEqual([]);
     });
 
     it("preserves insertion order when adding to empty ring", () => {
         const ring = new RotatableSet<number>();
-        expect(ring.addItem(1)).toBe(true);
-        expect(ring.addItem(2)).toBe(true);
-        expect(ring.addItem(3)).toBe(true);
+        ring.add(1).add(2).add(3);
+        expect(ring.size).toBe(3);
         expect(ring.toArray()).toEqual([1, 2, 3]);
         expect(ring.next()).toBe(1);
         expect(ring.next()).toBe(2);
@@ -42,25 +40,25 @@ describe("RotatableSet", () => {
         expect(ring.toArray()).toEqual([1, 2, 3]);
     });
 
-    it("addItem does not move the cursor", () => {
+    it("add does not move the cursor", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        ring.addItem(4);
+        ring.add(4);
         expect(ring.peek()).toBe(2);
         expect(ring.toArray()).toEqual([2, 3, 1, 4]);
         expect(ring.next()).toBe(2);
     });
 
-    it("addItem returns false for existing items and keeps state unchanged", () => {
+    it("adding an existing item keeps state unchanged", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        expect(ring.addItem(2)).toBe(false);
+        ring.add(2); // duplicate
         expect(ring.size).toBe(3);
         expect(ring.peek()).toBe(2);
         expect(ring.toArray()).toEqual([2, 3, 1]);
     });
 
-    it("add() matches Set semantics and is an alias for addItem", () => {
+    it("add() matches Set semantics", () => {
         const ring = new RotatableSet<number>();
         const ret = ring.add(1).add(2);
         expect(ret).toBe(ring);
@@ -121,19 +119,19 @@ describe("RotatableSet", () => {
         expect([...ring.cycle()]).toEqual(["only"]);
     });
 
-    it("removeItem removes items and maintains cursor", () => {
+    it("delete removes items and maintains cursor", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        expect(ring.removeItem(2)).toBe(true); // remove current
+        expect(ring.delete(2)).toBe(true); // remove current
         expect(ring.peek()).toBe(3);
         expect(ring.size).toBe(2);
         expect([...ring.cycle()]).toEqual([3, 1]);
 
-        expect(ring.removeItem(99)).toBe(false);
+        expect(ring.delete(99)).toBe(false);
         expect(ring.size).toBe(2);
     });
 
-    it("delete() matches Set semantics and is an alias for removeItem", () => {
+    it("delete() matches Set semantics", () => {
         const ring = new RotatableSet([1, 2, 3]);
         expect(ring.delete(2)).toBe(true);
         expect(ring.delete(2)).toBe(false);
@@ -144,24 +142,24 @@ describe("RotatableSet", () => {
     it("removing current from a 2-item set leaves the other item current", () => {
         const ring = new RotatableSet(["A", "B"]);
         ring.next(); // A, cursor at B
-        expect(ring.removeItem("B")).toBe(true);
+        expect(ring.delete("B")).toBe(true);
         expect(ring.size).toBe(1);
         expect(ring.peek()).toBe("A");
         expect(ring.getFurthestItem()).toBe("A");
     });
 
-    it("removeItem of a non-current item does not move the cursor", () => {
+    it("deleting a non-current item does not move the cursor", () => {
         const ring = new RotatableSet([1, 2, 3, 4]);
         ring.next(); // 1, cursor at 2
-        expect(ring.removeItem(4)).toBe(true);
+        expect(ring.delete(4)).toBe(true);
         expect(ring.peek()).toBe(2);
         expect(ring.toArray()).toEqual([2, 3, 1]);
         expect(ring.getFurthestItem()).toBe(1);
     });
 
-    it("enforces uniqueness on addItem", () => {
+    it("enforces uniqueness on add", () => {
         const ring = new RotatableSet([1, 2, 3]);
-        expect(ring.addItem(2)).toBe(false);
+        ring.add(2);
         expect(ring.size).toBe(3);
         expect(ring.toArray()).toEqual([1, 2, 3]);
     });
@@ -178,11 +176,11 @@ describe("RotatableSet", () => {
 
     it("removing the last item resets ring and allows fresh adds", () => {
         const ring = new RotatableSet<number>([10]);
-        expect(ring.removeItem(10)).toBe(true);
+        expect(ring.delete(10)).toBe(true);
         expect(ring.size).toBe(0);
         expect(() => ring.next()).toThrowError(/empty/i);
-        ring.addItem(20);
-        ring.addItem(30);
+        ring.add(20);
+        ring.add(30);
         expect(ring.toArray()).toEqual([20, 30]);
         expect(ring.next()).toBe(20);
     });

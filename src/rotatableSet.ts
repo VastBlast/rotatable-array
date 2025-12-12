@@ -24,17 +24,12 @@ export class RotatableSet<T> implements Iterable<T> {
 
     constructor(items: readonly T[] = []) {
         for (const item of items) {
-            this.addItem(item);
+            this.add(item);
         }
     }
 
     /** Number of items in the list. */
     get size(): number {
-        return this._size;
-    }
-
-    /** Alias for `size` for parity with arrays. */
-    get length(): number {
         return this._size;
     }
 
@@ -87,16 +82,6 @@ export class RotatableSet<T> implements Iterable<T> {
     }
 
     /**
-     * Alias for `add` that reports whether insertion happened.
-     * @returns `true` if the item was added, `false` if it already existed.
-     */
-    addItem(item: T): boolean {
-        if (this.nodes.has(item)) return false;
-        this.add(item);
-        return true;
-    }
-
-    /**
      * Remove `item` from the set. Matches native `Set.delete`.
      * @returns `true` if the item was removed.
      */
@@ -120,11 +105,6 @@ export class RotatableSet<T> implements Iterable<T> {
 
         this._size -= 1;
         return true;
-    }
-
-    /** Alias for `delete` for parity with earlier API. */
-    removeItem(item: T): boolean {
-        return this.delete(item);
     }
 
     /**

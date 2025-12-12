@@ -1,6 +1,6 @@
 {
   "name": "rotatable-array",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Allows you to rotate/iterate through an array in a circular manner.",
   "scripts": {
     "build": "tsdown",

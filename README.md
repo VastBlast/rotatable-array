@@ -29,7 +29,7 @@ console.log(rot.move(1));     // C
 
 const set = new RotatableSet([1, 2, 3]);
 set.add(4);                   // Set-style add (unique, returns this)
-set.addItem(4);               // false (already present)
+set.add(4);                   // no-op for duplicates
 console.log(set.next());      // 1
 console.log(set.getFurthestItem()); // 4
 ```
@@ -77,17 +77,16 @@ The cursor always points at the item that `next()` will return.
 | method                | summary                                                     |
 | --------------------- | ----------------------------------------------------------- |
 | `add(item)`           | Set‑style add (unique), returns `this`                      |
-| `addItem(item)`       | boolean add helper (`true` if inserted)                     |
 | `delete(item)`        | Set‑style delete, returns `boolean`                         |
-| `removeItem(item)`    | alias for `delete`                                          |
 | `next()`              | return current, advance (wraps)                             |
 | `peek()`              | read current without advancing                              |
 | `getFurthestItem()`   | item farthest from cursor in `next()` steps                 |
 | `has(item)`           | membership check                                            |
+| `isEmpty`             | whether the set has zero items                              |
 | `clear()`             | remove all items                                            |
 | `toArray()` *(O(n))*  | snapshot in rotation order starting from cursor             |
 | `toSet()` *(O(n))*    | finite snapshot as native `Set` (in insertion order)        |
-| `size` / `length`     | item count                                                  |
+| `size`                | item count                                                  |
 | `Symbol.iterator`     | infinite iterator (never `done`)                            |
 | `cycle()` *(O(n))*    | one full pass starting at cursor                            |
 

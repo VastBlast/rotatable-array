@@ -2,17 +2,52 @@
   "name": "rotatable-array",
   "version": "1.0.0",
   "description": "Allows you to rotate/iterate through an array in a circular manner.",
-  "main": "./dist/index.js",
   "scripts": {
-    "build": "tsc"
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "lint": "oxlint --type-aware",
+    "lint:fix": "oxlint --fix --type-aware",
+    "check:types": "tsgo --noEmit",
+    "check": "npm run lint && npm run check:types",
+    "test": "vitest"
   },
-  "types": "./dist/index.d.ts",
-  "keywords": ["rotatable", "array", "circular", "iterator"],
+  "keywords": [
+    "rotatable",
+    "array",
+    "circular",
+    "iterator"
+  ],
   "author": "VastBlast",
   "license": "ISC",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist/"
+  ],
   "devDependencies": {
-    "@types/jest": "^29.5.14",
-    "jest": "^29.7.0",
+    "@types/node": "^24.10.3",
+    "@typescript/native-preview": "^7.0.0-dev.20251211.1",
+    "oxlint": "^1.32.0",
+    "oxlint-tsgolint": "^0.8.6",
+    "tsdown": "^0.17.3",
     "typescript": "^5.8.3"
+  },
+  "type": "module",
+  "dependencies": {
+    "vitest": "^4.0.15"
   }
 }

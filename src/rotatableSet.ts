@@ -19,12 +19,13 @@ class RingNode<T> {
  */
 export class RotatableSet<T> implements Iterable<T> {
     private current: RingNode<T> | null = null;
+    private insertionHead: RingNode<T> | null = null;
     private readonly nodes = new Map<T, RingNode<T>>();
     private _size = 0;
 
     constructor(items: readonly T[] = []) {
         for (const item of items) {
-            this.add(item);
+            this.addToFurthest(item);
         }
     }
 
@@ -58,27 +59,50 @@ export class RotatableSet<T> implements Iterable<T> {
     }
 
     /**
-     * Add a new item to the set. The cursor is not moved.
-     * Items are appended just before the cursor to preserve insertion order.
+     * Add a new item at the furthest position (Set-style append).
+     * The cursor is not moved.
      * Matches native `Set.add` return type.
      */
-    add(item: T): this {
+    addToFurthest(item: T): this {
         if (this.nodes.has(item)) return this;
         const node = new RingNode(item);
 
         if (!this.current) {
             this.current = node;
+            this.insertionHead = node;
         } else {
-            const tail = this.current.prev;
-            node.next = this.current;
-            node.prev = tail;
-            tail.next = node;
-            this.current.prev = node;
+            this.insertBefore(this.requireInsertionHead(), node);
         }
 
         this.nodes.set(item, node);
         this._size += 1;
         return this;
+    }
+
+    /**
+     * Add a new item and make it the next one returned by `next()`.
+     * After it's returned, rotation continues with what would have been next.
+     */
+    addToNext(item: T): this {
+        if (this.nodes.has(item)) return this;
+        const node = new RingNode(item);
+
+        if (!this.current) {
+            this.current = node;
+            this.insertionHead = node;
+        } else {
+            this.insertBefore(this.current, node);
+            this.current = node;
+        }
+
+        this.nodes.set(item, node);
+        this._size += 1;
+        return this;
+    }
+
+    /** Back-compat alias for Set-style append. */
+    add(item: T): this {
+        return this.addToFurthest(item);
     }
 
     /**
@@ -92,15 +116,21 @@ export class RotatableSet<T> implements Iterable<T> {
 
         if (this._size === 1) {
             this.current = null;
+            this.insertionHead = null;
             this._size = 0;
             return true;
         }
 
+        const next = node.next;
         node.prev.next = node.next;
         node.next.prev = node.prev;
 
         if (node === this.current) {
-            this.current = node.next;
+            this.current = next;
+        }
+
+        if (node === this.insertionHead) {
+            this.insertionHead = next;
         }
 
         this._size -= 1;
@@ -115,6 +145,10 @@ export class RotatableSet<T> implements Iterable<T> {
      */
     getFurthestItem(index = 0): T {
         const node = this.requireCurrent();
+        if (!Number.isFinite(index)) {
+            throw new Error("Index must be a finite number");
+        }
+        index = Math.trunc(index);
         const offset = ((index % this._size) + this._size) % this._size;
 
         let target = node.prev;
@@ -132,6 +166,7 @@ export class RotatableSet<T> implements Iterable<T> {
     /** Remove all items. */
     clear(): void {
         this.current = null;
+        this.insertionHead = null;
         this.nodes.clear();
         this._size = 0;
     }
@@ -182,5 +217,20 @@ export class RotatableSet<T> implements Iterable<T> {
             throw new Error("RotatableSet is empty");
         }
         return this.current;
+    }
+
+    private requireInsertionHead(): RingNode<T> {
+        if (!this.insertionHead) {
+            throw new Error("RotatableSet is empty");
+        }
+        return this.insertionHead;
+    }
+
+    private insertBefore(target: RingNode<T>, node: RingNode<T>): void {
+        const prev = target.prev;
+        node.next = target;
+        node.prev = prev;
+        prev.next = node;
+        target.prev = node;
     }
 }

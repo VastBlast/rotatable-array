@@ -16,7 +16,7 @@ describe("RotatableSet", () => {
 
     it("preserves insertion order when adding to empty ring", () => {
         const ring = new RotatableSet<number>();
-        ring.add(1).add(2).add(3);
+        ring.addToFurthest(1).addToFurthest(2).addToFurthest(3);
         expect(ring.size).toBe(3);
         expect(ring.toArray()).toEqual([1, 2, 3]);
         expect(ring.next()).toBe(1);
@@ -43,29 +43,65 @@ describe("RotatableSet", () => {
     it("add does not move the cursor", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        ring.add(4);
+        ring.addToFurthest(4);
         expect(ring.peek()).toBe(2);
-        expect(ring.toArray()).toEqual([2, 3, 1, 4]);
+        expect(ring.toArray()).toEqual([2, 3, 4, 1]);
         expect(ring.next()).toBe(2);
     });
 
     it("adding an existing item keeps state unchanged", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        ring.add(2); // duplicate
+        ring.addToFurthest(2); // duplicate
         expect(ring.size).toBe(3);
         expect(ring.peek()).toBe(2);
         expect(ring.toArray()).toEqual([2, 3, 1]);
     });
 
-    it("add() matches Set semantics", () => {
+    it("addToFurthest() matches Set semantics", () => {
+        const ring = new RotatableSet<number>();
+        const ret = ring.addToFurthest(1).addToFurthest(2);
+        expect(ret).toBe(ring);
+        expect(ring.size).toBe(2);
+        ring.addToFurthest(2); // no-op
+        expect(ring.size).toBe(2);
+        expect(ring.toArray()).toEqual([1, 2]);
+    });
+
+    it("add() aliases addToFurthest()", () => {
         const ring = new RotatableSet<number>();
         const ret = ring.add(1).add(2);
         expect(ret).toBe(ring);
         expect(ring.size).toBe(2);
-        ring.add(2); // no-op
-        expect(ring.size).toBe(2);
         expect(ring.toArray()).toEqual([1, 2]);
+    });
+
+    it("addToNext makes the new item current", () => {
+        const ring = new RotatableSet([1, 2, 3]);
+        ring.next(); // 1, cursor at 2
+        ring.addToNext(99);
+        expect(ring.peek()).toBe(99);
+        expect(ring.toArray()).toEqual([99, 2, 3, 1]);
+        expect(ring.next()).toBe(99);
+        expect(ring.next()).toBe(2);
+    });
+
+    it("addToNext ignores duplicates and does not move the cursor", () => {
+        const ring = new RotatableSet([1, 2, 3]);
+        ring.next(); // 1, cursor at 2
+        ring.addToNext(2); // duplicate
+        expect(ring.size).toBe(3);
+        expect(ring.peek()).toBe(2);
+        expect(ring.toArray()).toEqual([2, 3, 1]);
+    });
+
+    it("addToNext works on empty sets", () => {
+        const ring = new RotatableSet<number>();
+        ring.addToNext(42);
+        expect(ring.size).toBe(1);
+        expect(ring.peek()).toBe(42);
+        expect(ring.next()).toBe(42);
+        expect(ring.next()).toBe(42);
     });
 
     it("toArray does not mutate cursor", () => {
@@ -79,7 +115,7 @@ describe("RotatableSet", () => {
     it("toSet returns a finite snapshot in insertion order and keeps cursor", () => {
         const ring = new RotatableSet([1, 2, 3]);
         ring.next(); // 1, cursor at 2
-        ring.add(4);
+        ring.addToFurthest(4);
         expect(Array.from(ring.toSet())).toEqual([1, 2, 3, 4]);
         expect(ring.peek()).toBe(2);
     });
@@ -115,6 +151,19 @@ describe("RotatableSet", () => {
         expect(ring.getFurthestItem(1)).toBe(4);
     });
 
+    it("getFurthestItem throws on non-finite indexes", () => {
+        const ring = new RotatableSet([1, 2, 3]);
+        expect(() => ring.getFurthestItem(Number.NaN)).toThrowError(/finite/i);
+        expect(() => ring.getFurthestItem(Number.POSITIVE_INFINITY)).toThrowError(/finite/i);
+        expect(() => ring.getFurthestItem(Number.NEGATIVE_INFINITY)).toThrowError(/finite/i);
+    });
+
+    it("getFurthestItem truncates float indexes", () => {
+        const ring = new RotatableSet([1, 2, 3, 4]);
+        expect(ring.getFurthestItem(1.9)).toBe(3);
+        expect(ring.getFurthestItem(-1.9)).toBe(1);
+    });
+
     it("supports adding and deleting class instances", () => {
         class Foo {
             constructor(public id: number) {}
@@ -124,7 +173,7 @@ describe("RotatableSet", () => {
         const c = new Foo(3);
 
         const ring = new RotatableSet<Foo>([a, b]);
-        ring.add(c);
+        ring.addToFurthest(c);
         expect(ring.size).toBe(3);
         expect(ring.peek()).toBe(a);
         expect(ring.delete(b)).toBe(true);
@@ -213,9 +262,23 @@ describe("RotatableSet", () => {
         expect(ring.getFurthestItem()).toBe(1);
     });
 
-    it("enforces uniqueness on add", () => {
+    it("deleting insertionHead preserves the furthest-append position", () => {
+        const ring = new RotatableSet(["A", "B", "C"]);
+        ring.next(); // A, cursor at B
+        ring.addToNext("D"); // cursor at D
+        expect(ring.toArray()).toEqual(["D", "B", "C", "A"]);
+
+        expect(ring.delete("A")).toBe(true); // delete insertionHead
+        expect(ring.toArray()).toEqual(["D", "B", "C"]);
+
+        ring.addToFurthest("E");
+        expect(ring.toArray()).toEqual(["D", "B", "C", "E"]);
+        expect(Array.from(ring.toSet())).toEqual(["B", "C", "D", "E"]);
+    });
+
+    it("enforces uniqueness on addToFurthest", () => {
         const ring = new RotatableSet([1, 2, 3]);
-        ring.add(2);
+        ring.addToFurthest(2);
         expect(ring.size).toBe(3);
         expect(ring.toArray()).toEqual([1, 2, 3]);
     });
@@ -235,9 +298,52 @@ describe("RotatableSet", () => {
         expect(ring.delete(10)).toBe(true);
         expect(ring.size).toBe(0);
         expect(() => ring.next()).toThrowError(/empty/i);
-        ring.add(20);
-        ring.add(30);
+        ring.addToFurthest(20);
+        ring.addToFurthest(30);
         expect(ring.toArray()).toEqual([20, 30]);
         expect(ring.next()).toBe(20);
     });
+
+    it("adding after next is called updates expected order", ()=> {
+        const set = new RotatableSet<number>();
+        set.addToFurthest(1).addToFurthest(2).addToFurthest(3);
+        expect(set.next()).toBe(1);
+        set.addToFurthest(4).addToFurthest(5).addToFurthest(6);
+        expect(set.next()).toBe(2);
+        expect(set.next()).toBe(3);
+        expect(set.next()).toBe(4);
+        expect(set.next()).toBe(5);
+        expect(set.next()).toBe(6);
+        expect(set.next()).toBe(1);
+    })
+
+    it('adding to next, after next is called, updates expected order', ()=> {
+        const set = new RotatableSet<number>();
+        set.add(1).add(2).add(3);
+        expect(set.next()).toBe(1);
+        expect(set.next()).toBe(2);
+        set.addToNext(99);
+        expect(set.next()).toBe(99);
+        expect(set.next()).toBe(3);
+        expect(set.next()).toBe(1);
+    })
+
+    it('still works as expected after deletes and adds in between', ()=> {
+        const set = new RotatableSet<string>();
+        set.add('A').add('B').add('C');
+        expect(set.next()).toBe('A');
+        expect(set.next()).toBe('B');
+        expect(set.next()).toBe('C');
+        set.addToNext('D');
+        expect(set.next()).toBe('D');
+        expect(set.delete('B'));
+        expect(set.next()).toBe('A');
+        set.addToFurthest('E')
+        set.addToNext('F');
+        expect(set.next()).toBe('F');
+        expect(set.next()).toBe('C');
+        expect(set.next()).toBe('D');
+        expect(set.next()).toBe('E');
+        expect(set.next()).toBe('A');
+    })
 });

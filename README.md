@@ -28,8 +28,8 @@ console.log(rot.previous());  // B
 console.log(rot.move(1));     // C
 
 const set = new RotatableSet([1, 2, 3]);
-set.add(4);                   // Set-style add (unique, returns this)
-set.add(4);                   // no-op for duplicates
+set.addToFurthest(4);          // Set-style append (unique, returns this)
+set.addToFurthest(4);          // no-op for duplicates
 console.log(set.getFurthestItem()); // 4
 console.log(set.getFurthestItem(1)); // 3
 console.log(set.next());      // 1
@@ -78,7 +78,9 @@ The cursor always points at the item that `next()` will return.
 
 | method                | summary                                                     |
 | --------------------- | ----------------------------------------------------------- |
-| `add(item)`           | Set‑style add (unique), returns `this`                      |
+| `addToFurthest(item)` | Set‑style append (unique), returns `this`                   |
+| `addToNext(item)`     | add and make it next returned by `next()`                   |
+| `add(item)`           | alias of `addToFurthest(item)`                              |
 | `delete(item)`        | Set‑style delete, returns `boolean`                         |
 | `next()`              | return current, advance (wraps)                             |
 | `peek()`              | read current without advancing                              |

@@ -128,7 +128,7 @@ export class RotatableArray<T> extends RotatableArrayBase<T> {
     }
 }
 
-export class MutatableRotatableArray<T> extends RotatableArrayBase<T> {
+export class RotatableMutatableArray<T> extends RotatableArrayBase<T> {
     /**
      * @param src   A **non-empty** array used as backing store.
      * @param copy  If `true` (default) we clone `src`; otherwise we reference it
@@ -177,7 +177,7 @@ export class MutatableRotatableArray<T> extends RotatableArrayBase<T> {
     removeAt(index: number): T {
         this.assertRemoveIndex(index);
         if (this.length === 1) {
-            throw new Error("MutatableRotatableArray must contain at least one element");
+            throw new Error("RotatableMutatableArray must contain at least one element");
         }
         if (index < this.index) {
             this.index -= 1;

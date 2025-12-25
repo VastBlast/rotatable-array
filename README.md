@@ -1,9 +1,9 @@
 # rotatable-array
 
-Two tiny, zero‑dependency circular rotators for TypeScript / JavaScript:
+Three tiny, zero‑dependency circular rotators for TypeScript / JavaScript:
 
 - `RotatableArray<T>`: an **immutable**, **non‑empty** round‑robin view over a backing array.
-- `MutatableRotatableArray<T>`: a **mutable**, **non-empty** round-robin array with add/remove.
+- `RotatableMutatableArray<T>`: a **mutable**, **non-empty** round-robin array with add/remove.
 - `RotatableSet<T>`: a **mutable**, **unique‑item** round‑robin set with O(1) add/remove/next.
 
 ---
@@ -19,7 +19,7 @@ npm i rotatable-array
 ## Quick Start
 
 ```ts
-import { MutatableRotatableArray, RotatableArray, RotatableSet } from "rotatable-array";
+import { RotatableMutatableArray, RotatableArray, RotatableSet } from "rotatable-array";
 
 const rot = new RotatableArray(["A", "B", "C"]);
 console.log(rot.next());      // A
@@ -28,7 +28,7 @@ console.log(rot.next());      // B
 console.log(rot.previous());  // B
 console.log(rot.move(1));     // C
 
-const mut = new MutatableRotatableArray(["A", "B"]);
+const mut = new RotatableMutatableArray(["A", "B"]);
 mut.add("C");
 mut.removeAt(1);
 console.log(mut.next());      // A
@@ -102,7 +102,7 @@ The cursor always points at the item that `next()` will return.
 
 Note: because the iterator is infinite, use `toArray()`, `toSet()`, or `cycle()` for finite snapshots.
 
-### MutatableRotatableArray
+### RotatableMutatableArray
 
 Mutable, ordered, circular array. Inherits all `RotatableArray` methods and adds:
 

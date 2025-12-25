@@ -3,6 +3,7 @@
 Two tiny, zero‑dependency circular rotators for TypeScript / JavaScript:
 
 - `RotatableArray<T>`: an **immutable**, **non‑empty** round‑robin view over a backing array.
+- `MutatableRotatableArray<T>`: a **mutable**, **non-empty** round-robin array with add/remove.
 - `RotatableSet<T>`: a **mutable**, **unique‑item** round‑robin set with O(1) add/remove/next.
 
 ---
@@ -18,7 +19,7 @@ npm i rotatable-array
 ## Quick Start
 
 ```ts
-import { RotatableArray, RotatableSet } from "rotatable-array";
+import { MutatableRotatableArray, RotatableArray, RotatableSet } from "rotatable-array";
 
 const rot = new RotatableArray(["A", "B", "C"]);
 console.log(rot.next());      // A
@@ -26,6 +27,11 @@ console.log(rot.peek(1));     // B
 console.log(rot.next());      // B
 console.log(rot.previous());  // B
 console.log(rot.move(1));     // C
+
+const mut = new MutatableRotatableArray(["A", "B"]);
+mut.add("C");
+mut.removeAt(1);
+console.log(mut.next());      // A
 
 const set = new RotatableSet([1, 2, 3]);
 set.addToFurthest(4);          // Set-style append (unique, returns this)
@@ -95,3 +101,15 @@ The cursor always points at the item that `next()` will return.
 | `cycle()` *(O(n))*    | one full pass starting at cursor                            |
 
 Note: because the iterator is infinite, use `toArray()`, `toSet()`, or `cycle()` for finite snapshots.
+
+### MutatableRotatableArray
+
+Mutable, ordered, circular array. Inherits all `RotatableArray` methods and adds:
+
+| method                 | summary                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `push(item)` / `add(item)` | append to end, returns new length                                 |
+| `insert(index, item)`  | insert at absolute index, returns new length                          |
+| `removeAt(index)`      | remove by absolute index, returns removed item (throws if last item) |
+
+Note: the array must always contain at least one element; `removeAt` throws if it would become empty.

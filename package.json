@@ -1,6 +1,6 @@
 {
   "name": "rotatable-array",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "Allows you to rotate/iterate through an array in a circular manner.",
   "scripts": {
     "build": "tsdown",
@@ -10,7 +10,7 @@
     "check:types": "tsgo --noEmit",
     "check": "npm run lint && npm run check:types",
     "test": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run check && npm run build"
   },
   "keywords": [
     "rotatable",
@@ -45,10 +45,8 @@
     "oxlint": "^1.35.0",
     "oxlint-tsgolint": "^0.10.0",
     "tsdown": "^0.18.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.16"
   },
-  "type": "module",
-  "dependencies": {
-    "vitest": "^4.0.15"
-  }
+  "type": "module"
 }
